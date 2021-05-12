@@ -1,20 +1,52 @@
-var express = require('express');
-var app = express();
-const bodyParser = require("body-parser");
+const app = require("./app");
+const debug = require("debug")("node-angular");
+const http = require("http");
 
-// var testRouter = require('./routes/Tests');
-var partyRouter = require('./routes/PartyConnector');
+const normalizePort = (val) => {
+  var port = parseInt(val, 10);
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
 
-// app.use('/Tests', testRouter);
-app.use('/party', partyRouter);
+  if (port >= 0) {
+    // port number
+    return port;
+  }
 
-app.post('/', function(req, res){
-   console.log(req.body);
-   res.send("Hello world!");
+  return false;
+};
 
-});
+const onError = (error) => {
+  if (error.syscall !== "listen") {
+    throw error;
+  }
+  const bind = typeof addr === "string" ? "pipe " + addr : "port " + port;
+  switch (error.code) {
+    case "EACCES":
+      console.error(bind + " requires elevated privileges");
+      process.exit(1);
+      break;
+    case "EADDRINUSE":
+      console.error(bind + " is already in use");
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+};
 
-app.listen(3301);
+const onListening = () => {
+  const addr = server.address();
+  const bind = typeof addr === "string" ? "pipe " + addr : "port " + port;
+  debug("Listening on " + bind);
+};
+
+const port = normalizePort(process.env.PORT || "3000");
+app.set("port", port);
+
+const server = http.createServer(app);
+server.on("error", onError);
+server.on("listening", onListening);
+server.listen(port);
