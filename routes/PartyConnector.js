@@ -6,6 +6,21 @@ const express = require('express');
 const router = express.Router();
 const Formatter = require('./Formatter')
 const MongoClient = require('mongodb').MongoClient
+const PartyModel = require('../Models/PartySchema');
+const mongoose = require("mongoose");
+
+mongoose
+    .connect(
+        "mongodb://localhost:27017/",
+        { useNewUrlParser: true, useUnifiedTopology: true }
+    )
+    .then(() => {
+        console.log("Connected to database!");
+    })
+    .catch(() => {
+        console.log("Connection failed!");
+    });
+
 let partyCollection;
 MongoClient.connect('mongodb://localhost:27017/')
     .then(r => {
@@ -53,10 +68,9 @@ function validateParams(body) {
 /** find party by name */
 const find = "find";
 router.get(`/${find}`, async (req, res) => {
-
         try {
             const name = req.query.name;
-            console.log(name,"123132");
+            // console.log(name,"123132");
             if(name===undefined){
                 res.send(Formatter.format("Name not specified",400));
                 return;
@@ -73,4 +87,18 @@ router.get(`/${find}`, async (req, res) => {
         }
     }
 )
+
+/** Get all names */
+const all_names = "all_names";
+router.get(`/${all_names}`, async (req, res) => {
+    try {
+        let names = await PartyModel.find({});
+        console.log(names);
+        res.send(Formatter.format(names, 200));
+    } catch (e) {
+        console.log(e);
+        res.send(Formatter.format(e.message, 500));
+    }
+})
+
 module.exports = router;
