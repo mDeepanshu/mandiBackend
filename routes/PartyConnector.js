@@ -11,7 +11,7 @@ const mongoose = require("mongoose");
 
 mongoose
     .connect(
-        "mongodb://localhost:27017/",
+        "mongodb://localhost:27017/mandi",
         { useNewUrlParser: true, useUnifiedTopology: true }
     )
     .then(() => {
@@ -48,7 +48,10 @@ router.post(`/${add_new}`, async (req, res) => {
         return;
     }
     try {
-        let result = await partyCollection.insertOne(body);
+        // let result = await partyCollection.insertOne(body);
+        var a = new PartyModel(body);
+        let result2 = await a.save();
+        console.log(result2);
         res.send(Formatter.format("successful added", 200));
     } catch (e) {
         res.send(Formatter.format("Failed to Add : " + e.message, 200));
@@ -75,7 +78,8 @@ router.get(`/${find}`, async (req, res) => {
                 res.send(Formatter.format("Name not specified",400));
                 return;
             }
-            const party = await partyCollection.findOne({"name": name});
+            const party = await PartyModel.findOne({ name:name }).exec();
+
             if(party===null){
                 res.send(Formatter.format("Not found",200));
                 return;
@@ -92,8 +96,7 @@ router.get(`/${find}`, async (req, res) => {
 const all_names = "all_names";
 router.get(`/${all_names}`, async (req, res) => {
     try {
-        let names = await PartyModel.find({});
-        console.log(names);
+        let names = await PartyModel.find({ },{name:1}).exec();
         res.send(Formatter.format(names, 200));
     } catch (e) {
         console.log(e);

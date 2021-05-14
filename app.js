@@ -14,7 +14,7 @@ app.use('/party', partyRouter);
 
 mongoose
   .connect(
-    "mongodb://localhost:27017/",
+    "mongodb://localhost:27017/mandi",
     { useNewUrlParser: true, useUnifiedTopology: true }
   )
   .then(() => {
