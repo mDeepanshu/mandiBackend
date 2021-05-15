@@ -5,14 +5,14 @@
 const express = require('express');
 const router = express.Router();
 const Formatter = require('./Formatter')
-const MongoClient = require('mongodb').MongoClient
+// const MongoClient = require('mongodb').MongoClient
 const PartyModel = require('../Models/PartySchema');
 const mongoose = require("mongoose");
 
 mongoose
     .connect(
-        "mongodb://localhost:27017/mandi",
-        { useNewUrlParser: true, useUnifiedTopology: true }
+        process.env.DB_LINK,
+        {useNewUrlParser: true, useUnifiedTopology: true}
     )
     .then(() => {
         console.log("Connected to database!");
@@ -21,6 +21,7 @@ mongoose
         console.log("Connection failed!");
     });
 
+/*
 let partyCollection;
 MongoClient.connect('mongodb://localhost:27017/')
     .then(r => {
@@ -29,6 +30,7 @@ MongoClient.connect('mongodb://localhost:27017/')
         }
     )
 ;
+*/
 
 /** Constants */
 const VYAPARI_TYPE = 0;
@@ -41,6 +43,7 @@ const OTHER_TYPE = 3;
 const add_new = "add_new";
 router.post(`/${add_new}`, async (req, res) => {
     const body = req.body;
+    req.body.current = req.body.starting;
     let msg = validateParams(body);
     if (typeof (msg) === "string") {
         res.send(Formatter.format(msg, 400));
@@ -70,20 +73,20 @@ const find = "find";
 router.get(`/${find}`, async (req, res) => {
         try {
             const name = req.query.name;
-            if(name===undefined){
-                res.send(Formatter.format("Name not specified",400));
+            if (name === undefined) {
+                res.send(Formatter.format("Name not specified", 400));
                 return;
             }
-            const party = await PartyModel.findOne({ name:name }).exec();
+            const party = await PartyModel.findOne({name: name}).exec();
 
-            if(party===null){
-                res.send(Formatter.format("Not found",200));
+            if (party === null) {
+                res.send(Formatter.format("Not found", 200));
                 return;
             }
             res.send(Formatter.format(party, 200));
         } catch (e) {
             console.log(e);
-            res.send(Formatter.format("error",500));
+            res.send(Formatter.format("error", 500));
         }
     }
 )
@@ -92,7 +95,7 @@ router.get(`/${find}`, async (req, res) => {
 const all_names = "all_names";
 router.get(`/${all_names}`, async (req, res) => {
     try {
-        let names = await PartyModel.find({ },{name:1}).exec();
+        let names = await PartyModel.find({}, {name: 1}).exec();
         res.send(Formatter.format(names, 200));
     } catch (e) {
         console.log(e);
@@ -105,8 +108,8 @@ router.get(`/${all_names}`, async (req, res) => {
 const check_availability = "check_availability";
 router.get(`/${check_availability}`, async (req, res) => {
     try {
-        let names = await PartyModel.findOne({name:req.query.name },{name:1}).exec();
-        if(names==null){
+        let names = await PartyModel.findOne({name: req.query.name}, {name: 1}).exec();
+        if (names == null) {
             res.send(Formatter.format("available", 200));
             return
         }
@@ -119,15 +122,15 @@ router.get(`/${check_availability}`, async (req, res) => {
 
 /** Autocomplete Name */
 const autocomplete_name = "autocomplete_name";
-router.get(`/${autocomplete_name}`,async (req,res)=>{
-    const {keyword, limit}= req.query;
+router.get(`/${autocomplete_name}`, async (req, res) => {
+    const {keyword, limit, types} = req.query;
     let regEx = new RegExp(keyword, "g");
     const queryResult = await PartyModel
-        .find({"name" : regEx},{name:1,_id:0})
+        .find({"name": regEx, "type": types}, {name: 1})
         .limit(parseInt(limit))
         .exec();
     console.log(queryResult);
-    res.send(Formatter.format(queryResult,200));
+    res.send(Formatter.format(queryResult, 200));
 })
 
 module.exports = router;
