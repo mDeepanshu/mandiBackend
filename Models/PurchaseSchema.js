@@ -17,13 +17,13 @@ const PurchaseSchema=new mongoose.Schema({
     bill_total:"number",
     to_exp:"number",
     net_amount:"number",
-    items:{
+    items:[{
         item_name:"string",
         bag:"number",
         quantity:"number",
         rate:"number",
         amount:"number"
-    }
+    }]
 });
 
 const PurchaseModel = mongoose.model('party',PurchaseSchema);

@@ -40,7 +40,6 @@ const OTHER_TYPE = 3;
 /** Add new party */
 const add_new = "add_new";
 router.post(`/${add_new}`, async (req, res) => {
-    console.log("/party/add_new");
     const body = req.body;
     let msg = validateParams(body);
     if (typeof (msg) === "string") {
@@ -48,10 +47,8 @@ router.post(`/${add_new}`, async (req, res) => {
         return;
     }
     try {
-        // let result = await partyCollection.insertOne(body);
-        var a = new PartyModel(body);
-        let result2 = await a.save();
-        console.log(result2);
+        let a = new PartyModel(body);
+        await a.save();
         res.send(Formatter.format("successful added", 200));
     } catch (e) {
         res.send(Formatter.format("Failed to Add : " + e.message, 200));
@@ -73,7 +70,6 @@ const find = "find";
 router.get(`/${find}`, async (req, res) => {
         try {
             const name = req.query.name;
-            // console.log(name,"123132");
             if(name===undefined){
                 res.send(Formatter.format("Name not specified",400));
                 return;
@@ -102,6 +98,36 @@ router.get(`/${all_names}`, async (req, res) => {
         console.log(e);
         res.send(Formatter.format(e.message, 500));
     }
+})
+
+
+/** Check is name available */
+const check_availability = "check_availability";
+router.get(`/${check_availability}`, async (req, res) => {
+    try {
+        let names = await PartyModel.findOne({name:req.query.name },{name:1}).exec();
+        if(names==null){
+            res.send(Formatter.format("available", 200));
+            return
+        }
+        res.send(Formatter.format("unavailable", 200));
+    } catch (e) {
+        console.log(e);
+        res.send(Formatter.format(e.message, 500));
+    }
+})
+
+/** Autocomplete Name */
+const autocomplete_name = "autocomplete_name";
+router.get(`/${autocomplete_name}`,async (req,res)=>{
+    const {keyword, limit}= req.query;
+    let regEx = new RegExp(keyword, "g");
+    const queryResult = await PartyModel
+        .find({"name" : regEx},{name:1,_id:0})
+        .limit(parseInt(limit))
+        .exec();
+    console.log(queryResult);
+    res.send(Formatter.format(queryResult,200));
 })
 
 module.exports = router;
