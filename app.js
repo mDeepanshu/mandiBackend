@@ -14,16 +14,16 @@ app.use("/party", partyRouter);
 // mongodb://localhost:27017/mandi
 // mongodb+srv://damon:qwert123@cluster0.qyevd.mongodb.net/test?authSource=admin&replicaSet=atlas-khpg0j-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true
 mongoose
-  .connect(process.env.DB_LINK, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Connected to database!");
-  })
-  .catch(() => {
-    console.log("Connection failed!");
-  });
+    .connect(process.env.DB_LINK, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    .then(() => {
+        console.log("Connected to database!");
+    })
+    .catch(() => {
+        console.log("Connection failed!");
+    });
 /*
 
 app.use((req, res, next) => {
