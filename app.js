@@ -5,11 +5,11 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
 var partyRouter = require("./routes/PartyConnector");
+var purchaseRouter = require("./routes/PurchaseConnector");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 
-app.use("/party", partyRouter);
 // mongodb+srv://damon:qwert123@cluster0.qyevd.mongodb.net/anilDeriyaJwellers?retryWrites=true
 // mongodb://localhost:27017/mandi
 // mongodb+srv://damon:qwert123@cluster0.qyevd.mongodb.net/test?authSource=admin&replicaSet=atlas-khpg0j-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true
@@ -24,6 +24,10 @@ mongoose
     .catch(() => {
         console.log("Connection failed!");
     });
+
+app.use("/party", partyRouter);
+app.use("/purchase", purchaseRouter);
+
 /*
 
 app.use((req, res, next) => {

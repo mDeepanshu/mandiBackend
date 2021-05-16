@@ -4,7 +4,7 @@ const Formatter = require('./Formatter')
 const PurchaseModel = require('../Models/PurchaseSchema');
 const mongoose = require("mongoose");
 
-mongoose
+/*mongoose
     .connect(
         "mongodb://localhost:27017/mandi",
         {useNewUrlParser: true, useUnifiedTopology: true}
@@ -14,11 +14,11 @@ mongoose
     })
     .catch(() => {
         console.log("Connection failed!");
-    });
+    });*/
 
 /** Add new purchase */
 const add_new = "add_new";
-router.post(`${add_new}`, async (req, res) => {
+router.post(`/${add_new}`, async (req, res) => {
     const body = req.body;
     let msg = validateParams(body);
     if (typeof (msg) === "string") {
@@ -34,30 +34,6 @@ router.post(`${add_new}`, async (req, res) => {
     }
 })
 
-/*
-date:"date",
-    bill_no: "number",
-    party:"string",
-    partyId:"ObjectID",
-    bhada_rate:"number",
-    bhada:"number",
-    hammali:"number",
-    cash:"number",
-    commission:"number",
-    commission_rate:"number",
-    station_charge:"number",
-    tax:"number",
-    driver:"number",
-    bill_total:"number",
-    to_exp:"number",
-    net_amount:"number",
-    items:[{
-    item_name:"string",
-    bag:"number",
-    quantity:"number",
-    rate:"number",
-    amount:"number"
-}]*/
 function validateParams(body) {
     if (body.date == null) return "date not specified";
     if (body.party == null) return "party amount not specified";
@@ -77,5 +53,14 @@ function validateParams(body) {
     if (body.items == null) return "No item is specified";
     return true;
 }
+
+/** Get Purchase by bill number */
+const by_bill_no = "by_bill_no";
+router.get(`/${by_bill_no}`, async (req, res) => {
+    const {bill_no} = req.query;
+    if (bill_no == null) res.send(Formatter.format("bill_no not found", 400));
+    let queryResult = await PurchaseModel.findOne({bill_no: bill_no});
+    res.send(Formatter.format(queryResult, 200));
+})
 
 module.exports = router;
