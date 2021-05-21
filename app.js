@@ -4,8 +4,9 @@ const app = express();
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
-var partyRouter = require("./routes/PartyConnector");
-var purchaseRouter = require("./routes/PurchaseConnector");
+let partyRouter = require("./routes/PartyConnector");
+let purchaseRouter = require("./routes/PurchaseConnector");
+let sellRouter = require("./routes/SellConnector");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -27,6 +28,7 @@ mongoose
 
 app.use("/party", partyRouter);
 app.use("/purchase", purchaseRouter);
+app.use("/sell", sellRouter);
 
 /*
 

@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const PurchaseSchema = new mongoose.Schema({
     date: "date",
     bill_no: "number",
-    party: "string",
     partyId: "ObjectID",
     bhada_rate: "number",
     bhada: "number",

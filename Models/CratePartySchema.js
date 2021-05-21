@@ -1,0 +1,12 @@
+const mongoose = require('mongoose');
+
+const CratePartySchema = new mongoose.Schema({
+    party_name:"string",
+    type1:"number",
+    type2:"number",
+    type3:"number"
+});
+
+const CratePartyModel = mongoose.model('crate', CratePartySchema);
+
+module.exports = CratePartyModel

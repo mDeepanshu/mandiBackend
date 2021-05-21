@@ -5,10 +5,9 @@
 const express = require('express');
 const router = express.Router();
 const Formatter = require('./Formatter')
-// const MongoClient = require('mongodb').MongoClient
 const PartyModel = require('../Models/PartySchema');
-const mongoose = require("mongoose");
-
+// const mongoose = require("mongoose");
+/*
 mongoose
     .connect(
         process.env.DB_LINK,
@@ -19,19 +18,7 @@ mongoose
     })
     .catch(() => {
         console.log("Connection failed!");
-    });
-
-/*
-let partyCollection;
-MongoClient.connect('mongodb://localhost:27017/')
-    .then(r => {
-            const db = r.db('mandi')
-            partyCollection = db.collection('party')
-        }
-    )
-;
-*/
-
+    });*/
 /** Constants */
 const VYAPARI_TYPE = 0;
 const SPL_VYAPARI_TYPE = 1;
@@ -129,8 +116,30 @@ router.get(`/${autocomplete_name}`, async (req, res) => {
         .find({"name": regEx, "type": types}, {name: 1})
         .limit(parseInt(limit))
         .exec();
-    console.log(queryResult);
     res.send(Formatter.format(queryResult, 200));
 })
 
+/** Edit party */
+const edit_party= "/edit_party";
+router.post(`${edit_party}`,async(req,res)=>{
+    const {partyId} = req.query
+    if("_id" in req.body) {
+        res.send(Formatter.format("Cannot edit _id field", 400));
+        return;
+    }
+    if("current" in req.body) {
+        res.send(Formatter.format("Cannot edit current field", 400));
+        return;
+    }
+    if("starting" in req.body) {
+        res.send(Formatter.format("Cannot edit starting field", 400));
+        return;
+    }
+    try {
+        let queryResult = await PartyModel.updateOne({_id: partyId}, req.body);
+        res.send(Formatter.format("Edited successfully",200));
+    }catch (e){
+        res.send(Formatter.format(`Error encountered ${e.message}`,500));
+    }
+})
 module.exports = router;

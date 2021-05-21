@@ -36,7 +36,6 @@ router.post(`/${add_new}`, async (req, res) => {
 
 function validateParams(body) {
     if (body.date == null) return "date not specified";
-    if (body.party == null) return "party amount not specified";
     if (body.partyId == null) return "partyId amount not specified";
     if (body.bhada_rate == null) return `bhada_rate is not specified`;
     if (body.bhada == null) return "bhada is not specified";
