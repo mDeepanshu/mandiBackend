@@ -113,6 +113,4 @@ router.get(`${by_party}`, async (req, res) => {
 
 });
 
-
-
 module.exports = router;

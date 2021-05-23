@@ -7,6 +7,6 @@ const CrateTransactionSchema = new mongoose.Schema({
     count: 'number',
 });
 
-const CrateModel = mongoose.model('crate', CrateTransactionSchema);
+const CrateModel = mongoose.model('crate_transaction', CrateTransactionSchema);
 
 module.exports = CrateModel

@@ -7,6 +7,6 @@ const CratePartySchema = new mongoose.Schema({
     type3:"number"
 });
 
-const CratePartyModel = mongoose.model('crate', CratePartySchema);
+const CratePartyModel = mongoose.model('crate_party', CratePartySchema);
 
 module.exports = CratePartyModel

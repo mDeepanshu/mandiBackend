@@ -6,14 +6,14 @@ const dotenv = require("dotenv");
 dotenv.config();
 let partyRouter = require("./routes/PartyConnector");
 let purchaseRouter = require("./routes/PurchaseConnector");
-let sellRouter = require("./routes/SellConnector");
+let transactionRouter = require("./routes/TransactionConnector");
+let crateTransactionRouter = require("./routes/CrateTransactionConnector");
+let cratePartyRouter = require("./routes/CratePartyConnector");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 
-// mongodb+srv://damon:qwert123@cluster0.qyevd.mongodb.net/anilDeriyaJwellers?retryWrites=true
 // mongodb://localhost:27017/mandi
-// mongodb+srv://damon:qwert123@cluster0.qyevd.mongodb.net/test?authSource=admin&replicaSet=atlas-khpg0j-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true
 mongoose
     .connect(process.env.DB_LINK, {
         useNewUrlParser: true,
@@ -39,6 +39,8 @@ app.use((req, res, next) => {
 });
 app.use("/party", partyRouter);
 app.use("/purchase", purchaseRouter);
-app.use("/sell", sellRouter);
+app.use("/transaction", transactionRouter);
+app.use("/crate_transaction", crateTransactionRouter);
+app.use("/crate_party", cratePartyRouter);
 
 module.exports = app;

@@ -1,0 +1,113 @@
+/**
+ * Reads data from sell collection
+ * */
+const express = require('express');
+const router = express.Router();
+const Formatter = require('./Formatter')
+const TransactionModel = require('../Models/TransactionSchema');
+const PartyModel = require('../Models/PartySchema');
+
+/** Add new transaction */
+const add_new = "add_new";
+router.post(`/${add_new}`, async (req, res) => {
+    const body = req.body;
+
+    let msg = validateParams(body);
+    if (typeof (msg) === "string") {
+        res.send(Formatter.format(msg, 400));
+        return;
+    }
+    let partyIds = [];
+    for (let index = 0; index < body.parties.length; index++) {
+        partyIds[index] = body.parties[index].id;
+    }
+    let currents = await PartyModel.find({_id:{$in:partyIds}},{current:1}).exec();
+    try {
+        let i;
+        for (i = 0; i < body.parties.length; i++) {
+            let a = new TransactionModel(body);
+            a.item_name = body.item_name;
+            a.date = body.date;
+            let party = body.parties[i];
+            a.current = getCurrent(currents,party.id,party.amount);
+            await PartyModel.updateOne({_id:party.id},{$inc:{current:party.amount}});
+            a.partyId = party.id;
+            a.amount = party.amount;
+            await a.save();
+        }
+        res.send(Formatter.format(`Successfully added ${i} entries`, 200));
+    } catch (e) {
+        res.send(Formatter.format("Failed to Add : " + e.message, 200));
+    }
+})
+
+function getCurrent(currents, id, amount){
+    for (let i = 0; i < currents.length; i++) {
+        if(currents[i]._id===id) {
+            currents[i].current+=amount;
+            return currents[i].current;
+        }
+    }
+}
+function validateParams(body) {
+    if (body.date == null) return "starting amount not specified";
+    if (body.parties == null) return "error type not specified";
+    for (let i = 0; i < body.parties.length; i++) {
+        let party = body.parties[i];
+        if (party.id == null) return `id at index ${i} cannot be null`;
+        if (party.amount == null) return `amount at index ${i} cannot be null`;
+    }
+    return true;
+}
+
+/** Get Party Transaction History */
+const party_transaction_history = "party_transaction_history";
+router.get(`/${party_transaction_history}`, async (req, res) => {
+    let {partyId, from_date, to_date} = req.query;
+    let resBody = {};
+    if (partyId == null) {
+        res.send(Formatter.format("specify partyId", 400));
+        return;
+    }
+    let starting = (await PartyModel.findOne({_id: partyId}, {starting: 1, _id: 0}).exec()).starting;
+    if (starting == null) {
+        res.send(Formatter.format("no party found for given partyId", 200));
+        return;
+    }
+    resBody.starting = starting;
+    resBody.transactions = await TransactionModel.find({
+        date: {$gte: from_date, $lte: to_date},
+        partyId: partyId
+    }, {partyId: 0, __v: 0});
+    res.send(Formatter.format(resBody, 200));
+})
+
+/** Add a vasuli transaction */
+const add_vasuli = "add_vasuli";
+router.post(`/${add_vasuli}`,async(req,res)=>{
+    let {partyId, amount, date} = req.query;
+    if (partyId==null|amount==null||date==null){
+        res.send(Formatter.format("partyid, amount, date are required as params"));
+        return;
+    }
+
+    let current = (await PartyModel.findOne({_id:partyId},{current:1,_id:0}).exec()).current;
+    if(current==null) {
+        res.send(Formatter.format("party not found",400));
+        return;
+    }try {
+        await PartyModel.updateOne({_id: partyId}, {$inc: {current: 0 - parseInt(amount)}});
+        let a = new TransactionModel();
+        a.date = date;
+        a.partyId = partyId;
+        a.item_name = "RETURN";
+        a.amount = 0 - amount;
+        a.current = current;
+        a.save();
+        res.send(Formatter.format(`Added Successfully`,200));
+    }catch (e) {
+        res.send(Formatter.format(`error encountered ${e.message}`,500));
+    }
+})
+
+module.exports = router;
