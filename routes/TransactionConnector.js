@@ -29,7 +29,7 @@ router.post(`/${add_new}`, async (req, res) => {
             a.item_name = body.item_name;
             a.date = body.date;
             let party = body.parties[i];
-            a.current = getCurrent(currents,party.id,party.amount);
+            a.current = getCurrent(currents, party.id, party.amount);
             await PartyModel.updateOne({_id:party.id},{$inc:{current:party.amount}});
             a.partyId = party.id;
             a.amount = party.amount;
@@ -43,7 +43,7 @@ router.post(`/${add_new}`, async (req, res) => {
 
 function getCurrent(currents, id, amount){
     for (let i = 0; i < currents.length; i++) {
-        if(currents[i]._id===id) {
+        if(currents[i]._id.toString()===id) {
             currents[i].current+=amount;
             return currents[i].current;
         }
@@ -64,7 +64,6 @@ function validateParams(body) {
 const party_transaction_history = "party_transaction_history";
 router.get(`/${party_transaction_history}`, async (req, res) => {
     let {partyId, from_date, to_date} = req.query;
-    let resBody = {};
     if (partyId == null) {
         res.send(Formatter.format("specify partyId", 400));
         return;
@@ -74,8 +73,8 @@ router.get(`/${party_transaction_history}`, async (req, res) => {
         res.send(Formatter.format("no party found for given partyId", 200));
         return;
     }
-    resBody.starting = starting;
-    resBody.transactions = await TransactionModel.find({
+    // resBody.starting = starting;
+    let resBody = await TransactionModel.find({
         date: {$gte: from_date, $lte: to_date},
         partyId: partyId
     }, {partyId: 0, __v: 0});
@@ -87,7 +86,7 @@ const add_vasuli = "add_vasuli";
 router.post(`/${add_vasuli}`,async(req,res)=>{
     let {partyId, amount, date} = req.query;
     if (partyId==null|amount==null||date==null){
-        res.send(Formatter.format("partyid, amount, date are required as params"));
+        res.send(Formatter.format("partyId, amount, date are required as params",400));
         return;
     }
 
@@ -102,12 +101,18 @@ router.post(`/${add_vasuli}`,async(req,res)=>{
         a.partyId = partyId;
         a.item_name = "RETURN";
         a.amount = 0 - amount;
-        a.current = current;
+        a.current = current-amount;
         a.save();
         res.send(Formatter.format(`Added Successfully`,200));
     }catch (e) {
         res.send(Formatter.format(`error encountered ${e.message}`,500));
     }
 })
+
+/** Get ledger report */
+const ledger = "ledger";
+router.get(`/${ledger}`,async(req,res)=>{
+
+});
 
 module.exports = router;
