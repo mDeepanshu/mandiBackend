@@ -127,7 +127,7 @@ const ledger = "ledger";
 router.get(`/${ledger}`, async (req, res) => {
     let {yyyy, mm, dd} = req.query;
     let nextDate = Formatter.nextDate(yyyy, mm, dd);
-    console.log("nextData" +nextDate);
+    // console.log("nextData" +nextDate);
     if (typeof (nextDate) == 'string') {
         res.send(Formatter.format(nextDate, 400));
         return;
@@ -152,7 +152,7 @@ router.get(`/${ledger}`, async (req, res) => {
             $lte: new Date(nextDate.yyyy, nextDate.mm, nextDate.dd)
         }
     }).sort('date').exec();
-    console.log(transactions);
+    // console.log(transactions);
     for (const transaction of transactions) {
         let index = indexes[transaction.partyId];
         let ledgerItem = ledgers[index];
