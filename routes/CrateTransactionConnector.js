@@ -34,4 +34,14 @@ function validateParams(body) {
     return true;
 }
 
+/** Get Transactions */
+const transactions = "transactions";
+router.get(`/${transactions}`,async (req,res)=>{
+    const {partyId, dd,mm,yyyy, from_date,to_date} = req.body;
+    if(from_date==null||to_date == null){
+        let nextDate = Formatter.nextDate(yyyy,mm,dd);
+        
+    }
+
+});
 module.exports = router;

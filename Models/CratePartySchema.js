@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const CratePartySchema = new mongoose.Schema({
-    party_name:"string",
+    name:"string",
     type1:"number",
     type2:"number",
     type3:"number"

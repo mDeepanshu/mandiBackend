@@ -9,6 +9,7 @@ let purchaseRouter = require("./routes/PurchaseConnector");
 let transactionRouter = require("./routes/TransactionConnector");
 let crateTransactionRouter = require("./routes/CrateTransactionConnector");
 let cratePartyRouter = require("./routes/CratePartyConnector");
+let constantRouter = require("./routes/ConstantConnector");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -42,5 +43,6 @@ app.use("/purchase", purchaseRouter);
 app.use("/transaction", transactionRouter);
 app.use("/crate_transaction", crateTransactionRouter);
 app.use("/crate_party", cratePartyRouter);
+app.use("/constant", constantRouter);
 
 module.exports = app;

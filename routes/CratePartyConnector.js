@@ -60,7 +60,7 @@ router.get(`/${autocomplete_name}`, async (req, res) => {
         .find({"name": regEx, "type": types}, {name: 1})
         .limit(parseInt(limit))
         .exec();
-    console.log(queryResult);
+    // console.log(queryResult);
     res.send(Formatter.format(queryResult, 200));
 })
 
@@ -70,8 +70,8 @@ const edit_party= "/edit_party";
 router.post(`${edit_party}`,async(req,res)=>{
     const {partyId} = req.query
     try {
-        let queryResult = await CratePartyModel.updateOne({_id: partyId}, req.body);
-        res.send(Formatter.format("Edited successfully",200));
+        const queryResult = await CratePartyModel.updateOne({_id: partyId}, req.body);
+        res.send(Formatter.format("Edited successfully "+queryResult,200));
     }catch (e){
         res.send(Formatter.format(`Error encountered ${e.message}`,500));
     }
