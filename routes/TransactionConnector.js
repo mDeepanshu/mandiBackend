@@ -75,7 +75,12 @@ function validateParams(body) {
 /** Get Party Transaction History */
 const party_transaction_history = "party_transaction_history";
 router.get(`/${party_transaction_history}`, async (req, res) => {
-    let {partyId, from_date, to_date} = req.query;
+    let {partyId, fdd,fmm,fyyyy,tdd,tmm,tyyyy} = req.query;
+    let nextDate = Formatter.nextDate(tyyyy,tmm,tdd);
+    if (typeof (nextDate) == 'string') {
+        res.send(Formatter.format(nextDate, 400));
+        return;
+    }
     if (partyId == null) {
         res.send(Formatter.format("specify partyId", 400));
         return;
@@ -86,10 +91,14 @@ router.get(`/${party_transaction_history}`, async (req, res) => {
         return;
     }
     // resBody.starting = starting;
+    let fromDate= new Date(fyyyy,fmm,fdd);
+    let toDate= new Date(nextDate.yyyy,nextDate.mm,nextDate.dd);
+    console.log(fromDate);
+    console.log(toDate);
     let resBody = await TransactionModel.find({
-        date: {$gte: from_date, $lte: to_date},
+        date: {$gte: fromDate, $lte: toDate},
         partyId: partyId
-    }, {partyId: 0, __v: 0});
+    }, {partyId: 0, __v: 0}).exec();
     res.send(Formatter.format(resBody, 200));
 })
 
@@ -145,7 +154,8 @@ router.get(`/${ledger}`, async (req, res) => {
         LedgerItem.back = party.current
         ledgers.push(ledgerItem);
     }
-
+    let fromDate = new Date(yyyy,mm,dd);
+    let toDate = new Date(nextDate.yyyy,nextDate.mm,nextDate.dd);
     let transactions = await TransactionModel.find({
         date: {
             $gte: new Date(yyyy, mm, dd),

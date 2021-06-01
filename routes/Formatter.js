@@ -40,12 +40,12 @@ class Formatter {
                 days = 31;
                 break;
         }
-        if (dd < 1 || days < days) return "date is wrong";
+        if (dd < 1 || days < dd) return "date is wrong";
 
-        dd = dd < days ? dd + 1 : 1;
-        mm = dd === 1 ? mm + 1 : mm;
+        dd = dd < days ? parseInt(dd) + 1 : 1;
+        mm = dd === 1 ? parseInt(mm) + 1 : mm;
         mm = mm <= 12 ? mm : 1;
-        yyyy = mm === 1 ? yyyy + 1 : yyyy;
+        yyyy = mm === 1 ? parseInt(yyyy) + 1 : yyyy;
 
         return {
             dd: dd,
