@@ -4,6 +4,7 @@ const app = express();
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
+const Formatter = require('./routes/Formatter.js')
 let partyRouter = require("./routes/PartyConnector");
 let purchaseRouter = require("./routes/PurchaseConnector");
 let transactionRouter = require("./routes/TransactionConnector");
@@ -44,5 +45,8 @@ app.use("/transaction", transactionRouter);
 app.use("/crate_transaction", crateTransactionRouter);
 app.use("/crate_party", cratePartyRouter);
 app.use("/constant", constantRouter);
-
+app.get("/", async (req,res)=>{
+    console.log("hey found new request")
+    res.send(Formatter.format("here is response for you",200));
+})
 module.exports = app;
