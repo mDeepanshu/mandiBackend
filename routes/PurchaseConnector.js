@@ -63,17 +63,23 @@ router.get(`/${by_bill_no}`, async (req, res) => {
 });
 
 /** Get Purchases by date */
-const by_date = "/by_date";
-router.get(`${by_date}`, async (req, res) => {
-    var {date,to_date, from_date} = req.query;
-    if (date == null&&to_date==null&&from_date==null) {
-        res.send(Formatter.format("date not specified", 400));
+const by_date = "by_date";
+router.get(`/${by_date}`, async (req, res) => {
+    let {fdd, fmm, fyyyy, tdd, tmm, tyyyy, limit,page} = req.query;
+    limit=parseInt(limit);
+    page=parseInt(page);
+    let from_date = new Date(fyyyy, fmm-1, fdd);
+    if(from_date.toString()==="Invalid Date"){
+        res.send(Formatter.format("error while parsing fdd, fmm, fyyyy", 400));
         return;
     }
-    let filter;
-    if (from_date == null)
-        filter = {date: date};
-    else filter = {
+    let nextDate = Formatter.nextDate(tyyyy, tmm-1, tdd);
+    if (typeof (nextDate) == 'string') {
+        res.send(Formatter.format(nextDate + " in till date", 400));
+        return;
+    }
+    let to_date = new Date(nextDate.yyyy, nextDate.mm, nextDate.dd);
+    let filter = {
         date: {
             $gte: from_date,
             $lt: to_date
@@ -81,11 +87,11 @@ router.get(`${by_date}`, async (req, res) => {
     }
     try {
         console.log("filter", filter);
-        let queryResult = await PurchaseModel.find(filter);
+        let queryResult = await PurchaseModel.find(filter).limit(limit).skip(limit*(page-1));
         console.log("query", queryResult)
         res.send(Formatter.format(queryResult, 200))
-    }catch (e){
-        res.send(Formatter.format(e.message,400));
+    } catch (e) {
+        res.send(Formatter.format(e.message, 400));
     }
 
 });
@@ -94,21 +100,21 @@ router.get(`${by_date}`, async (req, res) => {
 const by_party = "/by_party";
 router.get(`${by_party}`, async (req, res) => {
     const {party_name, party_id, limit, page} = req.query;
-    if (party_name == null&&party_id==null) {
+    if (party_name == null && party_id == null) {
         res.send(Formatter.format("party_name or party_id not specified", 400));
         return;
     }
     let filter;
     if (party_name != null)
-        filter = {party:party_name};
+        filter = {party: party_name};
     else filter = {
-        partyId:party_id
+        partyId: party_id
     }
     try {
-        let queryResult = await PurchaseModel.find(filter).limit(parseInt(limit)).skip(parseInt(limit*(page-1)));
+        let queryResult = await PurchaseModel.find(filter).limit(parseInt(limit)).skip(parseInt(limit * (page - 1)));
         res.send(Formatter.format(queryResult, 200))
-    }catch (e){
-        res.send(Formatter.format(e.message,400));
+    } catch (e) {
+        res.send(Formatter.format(e.message, 400));
     }
 
 });
