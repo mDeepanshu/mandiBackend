@@ -149,13 +149,11 @@ router.get(`/${ledger}`, async (req, res) => {
         indexes[party.id] = i;
         i = i + 1;
         let ledgerItem = new LedgerItem();
-        ledgers.id = ledgerItem;
+        ledgerItem.id = party.id;
         ledgerItem.name = party.name;
-        LedgerItem.back = party.current
+        ledgerItem.back = party.current
         ledgers.push(ledgerItem);
     }
-    let fromDate = new Date(yyyy,mm,dd);
-    let toDate = new Date(nextDate.yyyy,nextDate.mm,nextDate.dd);
     let transactions = await TransactionModel.find({
         date: {
             $gte: new Date(yyyy, mm, dd),
