@@ -54,7 +54,7 @@ function validateParams(body) {
 }
 
 /** Get Purchase by bill number */
-const by_bill_no = "/by_bill_no";
+const by_bill_no = "by_bill_no";
 router.get(`/${by_bill_no}`, async (req, res) => {
     const {bill_no} = req.query;
     if (bill_no == null) res.send(Formatter.format("bill_no not found", 400));
