@@ -14,7 +14,7 @@ router.post(`/${add_new}`, async (req, res) => {
     req.body.current = req.body.starting;
     let msg = validateParams(body);
     if (typeof (msg) === "string") {
-        res.send(Formatter.format(msg, 400));
+        res.send(Formatter.format(msg, 400)).status(400);
         return;
     }
     try {
@@ -47,7 +47,7 @@ router.get(`/${check_availability}`, async (req, res) => {
         res.send(Formatter.format("unavailable", 200));
     } catch (e) {
         console.log(e);
-        res.send(Formatter.format(e.message, 500));
+        res.send(Formatter.format(e.message, 500)).status(500);
     }
 })
 

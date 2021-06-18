@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Formatter = require('./Formatter')
 const PurchaseModel = require('../Models/PurchaseSchema');
-const mongoose = require("mongoose");
 
 /*mongoose
     .connect(
@@ -22,7 +21,7 @@ router.post(`/${add_new}`, async (req, res) => {
     const body = req.body;
     let msg = validateParams(body);
     if (typeof (msg) === "string") {
-        res.send(Formatter.format(msg, 400));
+        res.send(Formatter.format(msg, 400)).status(400);
         return;
     }
     try {
@@ -57,7 +56,7 @@ function validateParams(body) {
 const by_bill_no = "by_bill_no";
 router.get(`/${by_bill_no}`, async (req, res) => {
     const {bill_no} = req.query;
-    if (bill_no == null) res.send(Formatter.format("bill_no not found", 400));
+    if (bill_no == null) res.send(Formatter.format("bill_no not found", 400)).status(400);
     let queryResult = await PurchaseModel.findOne({bill_no: bill_no});
     res.send(Formatter.format(queryResult, 200));
 });
@@ -70,12 +69,12 @@ router.get(`/${by_date}`, async (req, res) => {
     page=parseInt(page);
     let from_date = new Date(fyyyy, fmm-1, fdd);
     if(from_date.toString()==="Invalid Date"){
-        res.send(Formatter.format("error while parsing fdd, fmm, fyyyy", 400));
+        res.send(Formatter.format("error while parsing fdd, fmm, fyyyy", 400)).status(400);
         return;
     }
     let nextDate = Formatter.nextDate(tyyyy, tmm-1, tdd);
     if (typeof (nextDate) == 'string') {
-        res.send(Formatter.format(nextDate + " in till date", 400));
+        res.send(Formatter.format(nextDate + " in till date", 400)).status(400);
         return;
     }
     let to_date = new Date(nextDate.yyyy, nextDate.mm, nextDate.dd);
@@ -91,7 +90,7 @@ router.get(`/${by_date}`, async (req, res) => {
         console.log("query", queryResult)
         res.send(Formatter.format(queryResult, 200))
     } catch (e) {
-        res.send(Formatter.format(e.message, 400));
+        res.send(Formatter.format(e.message, 400)).status(400);
     }
 
 });
@@ -101,7 +100,7 @@ const by_party = "/by_party";
 router.get(`${by_party}`, async (req, res) => {
     const {party_name, party_id, limit, page} = req.query;
     if (party_name == null && party_id == null) {
-        res.send(Formatter.format("party_name or party_id not specified", 400));
+        res.send(Formatter.format("party_name or party_id not specified", 400)).status(400);
         return;
     }
     let filter;
@@ -114,7 +113,7 @@ router.get(`${by_party}`, async (req, res) => {
         let queryResult = await PurchaseModel.find(filter).limit(parseInt(limit)).skip(parseInt(limit * (page - 1)));
         res.send(Formatter.format(queryResult, 200))
     } catch (e) {
-        res.send(Formatter.format(e.message, 400));
+        res.send(Formatter.format(e.message, 400)).status(400);
     }
 
 });

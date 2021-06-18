@@ -12,7 +12,7 @@ router.get(`/`, async (req, res) => {
         const constants = await ConstantModel.findOne({index: 0}, {_id: 0, index: 0});
         res.send(Formatter.format(constants, 200));
     } catch (e) {
-        res.send(Formatter.format("Internal Error", 500));
+        res.send(Formatter.format("Internal Error", 500)).status(500);
     }
 })
 module.exports = router;

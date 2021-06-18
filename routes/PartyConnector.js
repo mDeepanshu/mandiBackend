@@ -33,7 +33,7 @@ router.post(`/${add_new}`, async (req, res) => {
     req.body.current = req.body.starting;
     let msg = validateParams(body);
     if (typeof (msg) === "string") {
-        res.send(Formatter.format(msg, 400));
+        res.send(Formatter.format(msg, 400)).status(400);
         return;
     }
     try {
@@ -61,7 +61,7 @@ router.get(`/${find}`, async (req, res) => {
         try {
             const name = req.query.name;
             if (name === undefined) {
-                res.send(Formatter.format("Name not specified", 400));
+                res.send(Formatter.format("Name not specified", 400)).status(400);
                 return;
             }
             const party = await PartyModel.findOne({name: name}).exec();
@@ -73,7 +73,7 @@ router.get(`/${find}`, async (req, res) => {
             res.send(Formatter.format(party, 200));
         } catch (e) {
             console.log(e);
-            res.send(Formatter.format("error", 500));
+            res.send(Formatter.format("error", 500)).status(500);
         }
     }
 )
@@ -86,7 +86,7 @@ router.get(`/${all_names}`, async (req, res) => {
         res.send(Formatter.format(names, 200));
     } catch (e) {
         console.log(e);
-        res.send(Formatter.format(e.message, 500));
+        res.send(Formatter.format(e.message, 500)).status(500);
     }
 })
 
@@ -103,7 +103,7 @@ router.get(`/${check_availability}`, async (req, res) => {
         res.send(Formatter.format("unavailable", 200));
     } catch (e) {
         console.log(e);
-        res.send(Formatter.format(e.message, 500));
+        res.send(Formatter.format(e.message, 500)).status(500);
     }
 })
 
@@ -124,22 +124,22 @@ const edit_party= "/edit_party";
 router.post(`${edit_party}`,async(req,res)=>{
     const {partyId} = req.query
     if("_id" in req.body) {
-        res.send(Formatter.format("Cannot edit _id field", 400));
+        res.send(Formatter.format("Cannot edit _id field", 400)).status(400);
         return;
     }
     if("current" in req.body) {
-        res.send(Formatter.format("Cannot edit current field", 400));
+        res.send(Formatter.format("Cannot edit current field", 400)).status(400);
         return;
     }
     if("starting" in req.body) {
-        res.send(Formatter.format("Cannot edit starting field", 400));
+        res.send(Formatter.format("Cannot edit starting field", 400)).status(400);
         return;
     }
     try {
         let queryResult = await PartyModel.updateOne({_id: partyId}, req.body);
         res.send(Formatter.format("Edited successfully",200));
     }catch (e){
-        res.send(Formatter.format(`Error encountered ${e.message}`,500));
+        res.send(Formatter.format(`Error encountered ${e.message}`,500)).status(500);
     }
 })
 module.exports = router;

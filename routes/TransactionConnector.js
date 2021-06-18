@@ -25,7 +25,7 @@ router.post(`/${add_new}`, async (req, res) => {
 
     let msg = validateParams(body);
     if (typeof (msg) === "string") {
-        res.send(Formatter.format(msg, 400));
+        res.send(Formatter.format(msg, 400)).status(400);
         return;
     }
     let partyIds = [];
@@ -78,11 +78,11 @@ router.get(`/${party_transaction_history}`, async (req, res) => {
     let {partyId, fdd,fmm,fyyyy,tdd,tmm,tyyyy} = req.query;
     let nextDate = Formatter.nextDate(tyyyy,tmm,tdd);
     if (typeof (nextDate) == 'string') {
-        res.send(Formatter.format(nextDate, 400));
+        res.send(Formatter.format(nextDate, 400)).status(400);
         return;
     }
     if (partyId == null) {
-        res.send(Formatter.format("specify partyId", 400));
+        res.send(Formatter.format("specify partyId", 400)).status(400);
         return;
     }
     let starting = (await PartyModel.findOne({_id: partyId}, {starting: 1, _id: 0}).exec()).starting;
@@ -107,13 +107,13 @@ const add_vasuli = "add_vasuli";
 router.post(`/${add_vasuli}`, async (req, res) => {
     let {partyId, amount, date} = req.query;
     if (partyId == null | amount == null || date == null) {
-        res.send(Formatter.format("partyId, amount, date are required as params", 400));
+        res.send(Formatter.format("partyId, amount, date are required as params", 400)).status(400);
         return;
     }
 
     let current = (await PartyModel.findOne({_id: partyId}, {current: 1, _id: 0}).exec()).current;
     if (current == null) {
-        res.send(Formatter.format("party not found", 400));
+        res.send(Formatter.format("party not found", 400)).status(400);
         return;
     }
     try {
@@ -127,7 +127,7 @@ router.post(`/${add_vasuli}`, async (req, res) => {
         a.save();
         res.send(Formatter.format(`Added Successfully`, 200));
     } catch (e) {
-        res.send(Formatter.format(`error encountered ${e.message}`, 500));
+        res.send(Formatter.format(`error encountered ${e.message}`, 500)).status(500);
     }
 })
 
@@ -138,7 +138,7 @@ router.get(`/${ledger}`, async (req, res) => {
     let nextDate = Formatter.nextDate(yyyy, mm, dd);
     // console.log("nextData" +nextDate);
     if (typeof (nextDate) == 'string') {
-        res.send(Formatter.format(nextDate, 400));
+        res.send(Formatter.format(nextDate, 400)).status(400);
         return;
     }
     let parties = await PartyModel.find({}, {name: 1,current:1}).sort('name').exec();
@@ -173,7 +173,6 @@ router.get(`/${ledger}`, async (req, res) => {
     for (const ledger of ledgers) {
         ledger.calculateTotal();
     }
-
     res.send(Formatter.format(ledgers, 200));
 });
 

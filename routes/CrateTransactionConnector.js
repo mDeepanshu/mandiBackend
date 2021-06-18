@@ -23,11 +23,11 @@ router.post(`/${add_new}`, async (req, res) => {
             .updateOne({_id: body.partyId},
                 {$inc: {["type" + body.type]: body.count}});
         if (party["nModified"] === "0") {
-            res.send(Formatter.format("cannot find party", 400));
+            res.send(Formatter.format("cannot find party", 400)).status(400);
             return;
         }
     } catch (e) {
-        res.send(Formatter.format("cannot find party", 400));
+        res.send(Formatter.format("cannot find party", 400)).status(400);
         return;
     }
     try {
@@ -35,7 +35,7 @@ router.post(`/${add_new}`, async (req, res) => {
         await a.save();
         res.send(Formatter.format("successful added ", 200));
     } catch (e) {
-        res.send(Formatter.format("Failed to Add : " + e.message, 400));
+        res.send(Formatter.format("Failed to Add : " + e.message, 400)).status(400);
     }
 })
 
