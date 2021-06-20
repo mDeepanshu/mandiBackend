@@ -118,4 +118,15 @@ router.get(`${by_party}`, async (req, res) => {
 
 });
 
+/** Edit Purchase */
+const edit = "edit";
+router.post(`/${edit}`, async (req,res)=>{
+    const changes = req.body;
+    const purchaseId = req.query.id;
+    const dbResponse = await PurchaseModel.updateOne({_id:purchaseId},changes);
+    if(dbResponse.nModified===0){
+        return res.send(Formatter.format("not modified",400)).status(400);
+    }
+    return res.send(Formatter.format("successfully updated",200));
+})
 module.exports = router;
