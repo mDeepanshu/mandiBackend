@@ -129,4 +129,17 @@ router.post(`/${edit}`, async (req,res)=>{
     }
     return res.send(Formatter.format("successfully updated",200));
 })
+
+/** Autocomplete BillNo */
+const autocompleteBillNo = "autocomplete_bill_no";
+router.get(`/${autocompleteBillNo}`, async (req, res) => {
+    const {keyword, limit} = req.query;
+    let regEx = new RegExp(keyword, "g");
+    const queryResult = await PurchaseModel
+        .find({"bill_no": regEx}, {bill_no: 1})
+        .limit(parseInt(limit))
+        .exec();
+    res.send(Formatter.format(queryResult, 200));
+})
+
 module.exports = router;
