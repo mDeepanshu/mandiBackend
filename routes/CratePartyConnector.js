@@ -22,7 +22,7 @@ router.post(`/${add_new}`, async (req, res) => {
         await a.save();
         res.send(Formatter.format("successful added", 200));
     } catch (e) {
-        res.send(Formatter.format("Failed to Add : " + e.message, 200));
+        res.send(Formatter.format("Failed to Add : " + e.message, 304)).status(304);
     }
 })
 
@@ -73,7 +73,7 @@ router.post(`${edit_party}`,async(req,res)=>{
         const queryResult = await CratePartyModel.updateOne({_id: partyId}, req.body);
         res.send(Formatter.format("Edited successfully "+queryResult,200));
     }catch (e){
-        res.send(Formatter.format(`Error encountered ${e.message}`,500));
+        res.send(Formatter.format(`Error encountered ${e.message}`,500)).status(500);
     }
 })
 

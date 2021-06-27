@@ -15,7 +15,7 @@ router.post(`/${add_new}`, async (req, res) => {
     req.body.current = req.body.starting;
     let msg = validateParams(body);
     if (typeof (msg) === "string") {
-        res.send(Formatter.format(msg, 400));
+        res.send(Formatter.format(msg, 400)).status(400);
         return;
     }
     try {
