@@ -40,7 +40,7 @@ router.post(`/${add_new}`, async (req, res) => {
             a.item_name = body.item_name;
             a.date = body.date;
             let party = body.parties[i];
-            a.current = getCurrent(currents, party.id, party.amount);
+            a.current = parseInt(getCurrent(currents, party.id, party.amount));
             await PartyModel.updateOne({_id: party.id}, {$inc: {current: party.amount}});
             a.partyId = party.id;
             a.amount = party.amount;
@@ -55,7 +55,7 @@ router.post(`/${add_new}`, async (req, res) => {
 function getCurrent(currents, id, amount) {
     for (let i = 0; i < currents.length; i++) {
         if (currents[i]._id.toString() === id) {
-            currents[i].current += amount;
+            currents[i].current += parseInt(amount);
             return currents[i].current;
         }
     }
