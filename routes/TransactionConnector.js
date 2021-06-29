@@ -151,7 +151,7 @@ router.get(`/${ledger}`, async (req, res) => {
         let ledgerItem = new LedgerItem();
         ledgerItem.id = party.id;
         ledgerItem.name = party.name;
-        ledgerItem.back = party.current
+        ledgerItem.back = parseInt(party.current)
         ledgers.push(ledgerItem);
     }
     let transactions = await TransactionModel.find({
