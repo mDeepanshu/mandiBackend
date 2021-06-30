@@ -6,6 +6,7 @@ const router = express.Router();
 const Formatter = require('./Formatter')
 const TransactionModel = require('../Models/TransactionSchema');
 const PartyModel = require('../Models/PartySchema');
+const smsClient = require('fast-two-sms')
 
 function LedgerItem(name, id) {
     this.id = id;
@@ -75,8 +76,8 @@ function validateParams(body) {
 /** Get Party Transaction History */
 const party_transaction_history = "party_transaction_history";
 router.get(`/${party_transaction_history}`, async (req, res) => {
-    let {partyId, fdd,fmm,fyyyy,tdd,tmm,tyyyy} = req.query;
-    let nextDate = Formatter.nextDate(tyyyy,tmm,tdd);
+    let {partyId, fdd, fmm, fyyyy, tdd, tmm, tyyyy} = req.query;
+    let nextDate = Formatter.nextDate(tyyyy, tmm, tdd);
     if (typeof (nextDate) == 'string') {
         res.send(Formatter.format(nextDate, 400)).status(400);
         return;
@@ -91,8 +92,8 @@ router.get(`/${party_transaction_history}`, async (req, res) => {
         return;
     }
     // resBody.starting = starting;
-    let fromDate= new Date(fyyyy,fmm,fdd);
-    let toDate= new Date(nextDate.yyyy,nextDate.mm,nextDate.dd);
+    let fromDate = new Date(fyyyy, fmm, fdd);
+    let toDate = new Date(nextDate.yyyy, nextDate.mm, nextDate.dd);
     console.log(fromDate);
     console.log(toDate);
     let resBody = await TransactionModel.find({
@@ -141,7 +142,7 @@ router.get(`/${ledger}`, async (req, res) => {
         res.send(Formatter.format(nextDate, 400)).status(400);
         return;
     }
-    let parties = await PartyModel.find({}, {name: 1,current:1}).sort('name').exec();
+    let parties = await PartyModel.find({}, {name: 1, current: 1}).sort('name').exec();
     const ledgers = [];
     const indexes = {};
     let i = 0;
@@ -168,7 +169,7 @@ router.get(`/${ledger}`, async (req, res) => {
             ledgerItem.back = transaction.current - transaction.amount;
         }
         ledgerItem.items.push(transaction.amount);
-        ledgerItem.today = ledgerItem.today+transaction.amount;
+        ledgerItem.today = ledgerItem.today + transaction.amount;
     }
     for (const ledger of ledgers) {
         ledger.calculateTotal();
@@ -176,5 +177,17 @@ router.get(`/${ledger}`, async (req, res) => {
     res.send(Formatter.format(ledgers, 200));
 });
 
-
+/** Send SMS */
+const send_sms = "send_sms";
+router.post(`/${send_sms}`, async (req, res) => {
+    let options = {
+        authorization: process.env.SMS_API_KEY,
+        message: "We can send messages from server side, it cost i guess 0.20 rs/msg\n" +
+            "we can also buy sender id it will cost 150 rs for 6 months",
+        numbers: ["8349842228"]
+    }
+    const response = await smsClient.sendMessage(options)
+    console.log(response)
+    res.send(response);
+})
 module.exports = router;
