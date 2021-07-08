@@ -14,6 +14,7 @@ function LedgerItem(name, id) {
     this.back = 0;
     this.items = [];
     this.today = 0;
+    this.urgent = true
     this.calculateTotal = function () {
         this.total = this.back + this.today
     }
@@ -174,6 +175,29 @@ router.get(`/${ledger}`, async (req, res) => {
     for (const ledger of ledgers) {
         ledger.calculateTotal();
     }
+
+    // marking urgent
+    let oldDate = new Date(yyyy, mm - 1, dd);
+    oldDate.setDate(oldDate.getDate() - 3);
+    let vasuliTransactions = await TransactionModel.find({
+        date: {
+            $gte: oldDate,//3 days prior date
+            $lte: new Date(nextDate.yyyy, nextDate.mm, nextDate.dd)
+        },
+        item_name: "RETURN"
+    }, {partyId: 1, _id: 0}).exec();
+    console.log("vas",vasuliTransactions)
+    // these are the parties whom vasuli is done in 3 prev days
+    // removing urgent sign from these parties
+    for (const vasuliTransaction of vasuliTransactions) {
+        let index = indexes[vasuliTransaction.partyId];
+        let ledgerItem = ledgers[index];
+        if (ledgerItem === undefined) {
+        } else {
+            ledgerItem.urgent = false
+        }
+    }
+
     res.send(Formatter.format(ledgers, 200));
 });
 
