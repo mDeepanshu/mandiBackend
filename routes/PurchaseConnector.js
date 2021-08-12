@@ -123,9 +123,18 @@ const edit = "edit";
 router.post(`/${edit}`, async (req,res)=>{
     const changes = req.body;
     const purchaseId = req.query.id;
-    const dbResponse = await PurchaseModel.updateOne({_id:purchaseId},changes);
+    let dbResponse;
+    try {
+        dbResponse = await PurchaseModel.updateOne({_id: purchaseId}, changes);
+    }catch (e) {
+        return res.send(Formatter.format("not modified.. "+e,400)).status(400);
+    }
+    // console.log(dbResponse)
+    if(dbResponse.n===0){
+        return res.send(Formatter.format("not modified.. document not found",400)).status(400);
+    }
     if(dbResponse.nModified===0){
-        return res.send(Formatter.format("not modified",400)).status(400);
+        return res.send(Formatter.format("not modified.. no changes requested",400)).status(400);
     }
     return res.send(Formatter.format("successfully updated",200));
 })
