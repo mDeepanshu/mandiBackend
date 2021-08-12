@@ -21,8 +21,14 @@
         "debug": "^4.3.1",
         "dotenv": "^9.0.2",
         "express": "^4.17.1",
+<<<<<<< HEAD
         "mongoose": "^5.12.8",
         "nodemon": "^2.0.12"
+=======
+        "fast-two-sms": "^3.0.0",
+        "firebase": "^8.6.8",
+        "mongoose": "^5.12.8"
+>>>>>>> d685733e6605facad492b5774443fa8a4aacb04b
     },
     "devDependencies": {
         "mongodb": "^3.6.6"

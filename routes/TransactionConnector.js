@@ -3,9 +3,10 @@
  * */
 const express = require("express");
 const router = express.Router();
-const Formatter = require("./Formatter");
-const TransactionModel = require("../Models/TransactionSchema");
-const PartyModel = require("../Models/PartySchema");
+const Formatter = require('./Formatter')
+const TransactionModel = require('../Models/TransactionSchema');
+const PartyModel = require('../Models/PartySchema');
+const smsClient = require('fast-two-sms')
 
 function LedgerItem(name, id) {
     this.id = id;
@@ -13,6 +14,7 @@ function LedgerItem(name, id) {
     this.back = 0;
     this.items = [];
     this.today = 0;
+    this.urgent = true
     this.calculateTotal = function () {
         this.total = this.back + this.today;
     };
@@ -43,11 +45,8 @@ router.post(`/${add_new}`, async (req, res) => {
             a.item_name = body.item_name;
             a.date = body.date;
             let party = body.parties[i];
-            a.current = getCurrent(currents, party.id, party.amount);
-            await PartyModel.updateOne(
-                { _id: party.id },
-                { $inc: { current: party.amount } }
-            );
+            a.current = parseInt(getCurrent(currents, party.id, party.amount));
+            await PartyModel.updateOne({_id: party.id}, {$inc: {current: party.amount}});
             a.partyId = party.id;
             a.amount = party.amount;
             await a.save();
@@ -61,7 +60,7 @@ router.post(`/${add_new}`, async (req, res) => {
 function getCurrent(currents, id, amount) {
     for (let i = 0; i < currents.length; i++) {
         if (currents[i]._id.toString() === id) {
-            currents[i].current += amount;
+            currents[i].current += parseInt(amount);
             return currents[i].current;
         }
     }
@@ -81,9 +80,9 @@ function validateParams(body) {
 /** Get Party Transaction History */
 const party_transaction_history = "party_transaction_history";
 router.get(`/${party_transaction_history}`, async (req, res) => {
-    let { partyId, fdd, fmm, fyyyy, tdd, tmm, tyyyy } = req.query;
+    let {partyId, fdd, fmm, fyyyy, tdd, tmm, tyyyy} = req.query;
     let nextDate = Formatter.nextDate(tyyyy, tmm, tdd);
-    if (typeof nextDate == "string") {
+    if (typeof (nextDate) == 'string') {
         res.send(Formatter.format(nextDate, 400)).status(400);
         return;
     }
@@ -170,9 +169,7 @@ router.get(`/${ledger}`, async (req, res) => {
         res.send(Formatter.format(nextDate, 400)).status(400);
         return;
     }
-    let parties = await PartyModel.find({}, { name: 1, current: 1 })
-        .sort("name")
-        .exec();
+    let parties = await PartyModel.find({}, {name: 1, current: 1}).sort('name').exec();
     const ledgers = [];
     const indexes = {};
     let i = 0;
@@ -206,7 +203,43 @@ router.get(`/${ledger}`, async (req, res) => {
     for (const ledger of ledgers) {
         ledger.calculateTotal();
     }
+
+    // marking urgent
+    let oldDate = new Date(yyyy, mm - 1, dd);
+    oldDate.setDate(oldDate.getDate() - 3);
+    let vasuliTransactions = await TransactionModel.find({
+        date: {
+            $gte: oldDate,//3 days prior date
+            $lte: new Date(nextDate.yyyy, nextDate.mm, nextDate.dd)
+        },
+        item_name: "RETURN"
+    }, {partyId: 1, _id: 0}).exec();
+    console.log("vas",vasuliTransactions)
+    // these are the parties whom vasuli is done in 3 prev days
+    // removing urgent sign from these parties
+    for (const vasuliTransaction of vasuliTransactions) {
+        let index = indexes[vasuliTransaction.partyId];
+        let ledgerItem = ledgers[index];
+        if (ledgerItem === undefined) {
+        } else {
+            ledgerItem.urgent = false
+        }
+    }
+
     res.send(Formatter.format(ledgers, 200));
 });
 
+/** Send SMS */
+const send_sms = "send_sms";
+router.post(`/${send_sms}`, async (req, res) => {
+    let options = {
+        authorization: process.env.SMS_API_KEY,
+        message: "We can send messages from server side, it cost i guess 0.20 rs/msg\n" +
+            "we can also buy sender id it will cost 150 rs for 6 months",
+        numbers: ["8349842228"]
+    }
+    const response = await smsClient.sendMessage(options)
+    console.log(response)
+    res.send(response);
+})
 module.exports = router;

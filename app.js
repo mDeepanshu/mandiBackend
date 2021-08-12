@@ -48,7 +48,7 @@ app.use("/crate_transaction", crateTransactionRouter);
 app.use("/crate_party", cratePartyRouter);
 app.use("/constant", constantRouter);
 app.get("/", async (req, res) => {
-    console.log("hey found new request");
+    console.log("hey found new request")
     res.send(Formatter.format("here is response for you", 200));
-});
+})
 module.exports = app;
