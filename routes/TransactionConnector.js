@@ -46,7 +46,7 @@ router.post(`/${add_new}`, async (req, res) => {
             a.date = body.date;
             let party = body.parties[i];
             a.current = parseInt(getCurrent(currents, party.id, party.amount));
-            await PartyModel.updateOne({_id: party.id}, {$inc: {current: party.amount}});
+            await PartyModel.updateOne({ _id: party.id }, { $inc: { current: party.amount } });
             a.partyId = party.id;
             a.amount = party.amount;
             await a.save();
@@ -80,7 +80,7 @@ function validateParams(body) {
 /** Get Party Transaction History */
 const party_transaction_history = "party_transaction_history";
 router.get(`/${party_transaction_history}`, async (req, res) => {
-    let {partyId, fdd, fmm, fyyyy, tdd, tmm, tyyyy} = req.query;
+    let { partyId, fdd, fmm, fyyyy, tdd, tmm, tyyyy } = req.query;
     let nextDate = Formatter.nextDate(tyyyy, tmm, tdd);
     if (typeof (nextDate) == 'string') {
         res.send(Formatter.format(nextDate, 400)).status(400);
@@ -118,7 +118,7 @@ router.get(`/${party_transaction_history}`, async (req, res) => {
 /** Add a vasuli transaction */
 const add_vasuli = "add_vasuli";
 router.post(`/${add_vasuli}`, async (req, res) => {
-    let { partyId, amount, date } = req.query;
+    let { partyId, amount, date, sendSms } = req.query;
     if ((partyId == null) | (amount == null) || date == null) {
         res.send(
             Formatter.format(
@@ -128,13 +128,11 @@ router.post(`/${add_vasuli}`, async (req, res) => {
         ).status(400);
         return;
     }
-
-    let current = (
-        await PartyModel.findOne(
-            { _id: partyId },
-            { current: 1, _id: 0 }
-        ).exec()
-    ).current;
+    let party = await PartyModel.findOne(
+        { _id: partyId },
+        { current: 1, phone: 1, _id: 0 }
+    ).exec()
+    let current = party.current;
     if (current == null) {
         res.send(Formatter.format("party not found", 400)).status(400);
         return;
@@ -151,7 +149,12 @@ router.post(`/${add_vasuli}`, async (req, res) => {
         a.amount = 0 - amount;
         a.current = current - amount;
         a.save();
-        res.send(Formatter.format(`Added Successfully`, 200));
+        // console.log("jijuji");
+        const smsStatus = "opted to not send sms"
+        if(sendSms){
+            smsStatus = await send_sms(party.phone, date, amount, party.name);
+        }
+        res.send(Formatter.format(`Added Successfully\n ${smsStatus}`, 200));
     } catch (e) {
         res.send(
             Formatter.format(`error encountered ${e.message}`, 500)
@@ -169,7 +172,7 @@ router.get(`/${ledger}`, async (req, res) => {
         res.send(Formatter.format(nextDate, 400)).status(400);
         return;
     }
-    let parties = await PartyModel.find({}, {name: 1, current: 1}).sort('name').exec();
+    let parties = await PartyModel.find({}, { name: 1, current: 1 }).sort('name').exec();
     const ledgers = [];
     const indexes = {};
     let i = 0;
@@ -213,8 +216,8 @@ router.get(`/${ledger}`, async (req, res) => {
             $lte: new Date(nextDate.yyyy, nextDate.mm, nextDate.dd)
         },
         item_name: "RETURN"
-    }, {partyId: 1, _id: 0}).exec();
-    console.log("vas",vasuliTransactions)
+    }, { partyId: 1, _id: 0 }).exec();
+    console.log("vas", vasuliTransactions)
     // these are the parties whom vasuli is done in 3 prev days
     // removing urgent sign from these parties
     for (const vasuliTransaction of vasuliTransactions) {
@@ -229,17 +232,18 @@ router.get(`/${ledger}`, async (req, res) => {
     res.send(Formatter.format(ledgers, 200));
 });
 
-/** Send SMS */
-const send_sms = "send_sms";
-router.post(`/${send_sms}`, async (req, res) => {
+async function send_sms(phone, date, amount, name) {
+    // console.log("hhhhhhh")
+    message = `Greetings ${name}, your payment of ${amount} on ${date} was successful`
     let options = {
         authorization: process.env.SMS_API_KEY,
-        message: "We can send messages from server side, it cost i guess 0.20 rs/msg\n" +
+        message: message +
+            "\nWe can send messages from server side, it cost i guess 0.40 rs/msg\n" +
             "we can also buy sender id it will cost 150 rs for 6 months",
-        numbers: ["8349842228"]
+        numbers: [phone]
     }
     const response = await smsClient.sendMessage(options)
-    console.log(response)
-    res.send(response);
-})
+    return response;
+}
+
 module.exports = router;
