@@ -14,7 +14,7 @@ function LedgerItem(name, id) {
     this.back = 0;
     this.items = [];
     this.today = 0;
-    this.urgent = true
+    // this.urgent = true
     this.calculateTotal = function () {
         this.total = this.back + this.today;
     };
@@ -206,7 +206,7 @@ router.get(`/${ledger}`, async (req, res) => {
     for (const ledger of ledgers) {
         ledger.calculateTotal();
     }
-
+/*
     // marking urgent
     let oldDate = new Date(yyyy, mm - 1, dd);
     oldDate.setDate(oldDate.getDate() - 3);
@@ -228,6 +228,7 @@ router.get(`/${ledger}`, async (req, res) => {
             ledgerItem.urgent = false
         }
     }
+*/
 
     res.send(Formatter.format(ledgers, 200));
 });
