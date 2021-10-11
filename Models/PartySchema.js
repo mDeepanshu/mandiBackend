@@ -7,7 +7,10 @@ const PartySchema = new mongoose.Schema({
     starting: "number",
     address: "string",
     current: "number",
-    phone: "string"
+    phone: "string",
+    dayThreshold: "number",
+    lastVasuli:"number"
+
 });
 
 const PartyModel = mongoose.model('party', PartySchema);

@@ -140,7 +140,7 @@ router.post(`/${add_vasuli}`, async (req, res) => {
     try {
         await PartyModel.updateOne(
             { _id: partyId },
-            { $inc: { current: 0 - parseInt(amount) } }
+            { $inc: { current: 0 - parseInt(amount) }, lastVasuli: new Date(date).getTime() }
         );
         let a = new TransactionModel();
         a.date = date;
@@ -149,9 +149,8 @@ router.post(`/${add_vasuli}`, async (req, res) => {
         a.amount = 0 - amount;
         a.current = current - amount;
         a.save();
-        // console.log("jijuji");
         const smsStatus = "opted to not send sms"
-        if(sendSms){
+        if (sendSms == "true") {
             smsStatus = await send_sms(party.phone, date, amount, party.name);
         }
         res.send(Formatter.format(`Added Successfully\n ${smsStatus}`, 200));
@@ -206,29 +205,29 @@ router.get(`/${ledger}`, async (req, res) => {
     for (const ledger of ledgers) {
         ledger.calculateTotal();
     }
-/*
-    // marking urgent
-    let oldDate = new Date(yyyy, mm - 1, dd);
-    oldDate.setDate(oldDate.getDate() - 3);
-    let vasuliTransactions = await TransactionModel.find({
-        date: {
-            $gte: oldDate,//3 days prior date
-            $lte: new Date(nextDate.yyyy, nextDate.mm, nextDate.dd)
-        },
-        item_name: "RETURN"
-    }, { partyId: 1, _id: 0 }).exec();
-    console.log("vas", vasuliTransactions)
-    // these are the parties whom vasuli is done in 3 prev days
-    // removing urgent sign from these parties
-    for (const vasuliTransaction of vasuliTransactions) {
-        let index = indexes[vasuliTransaction.partyId];
-        let ledgerItem = ledgers[index];
-        if (ledgerItem === undefined) {
-        } else {
-            ledgerItem.urgent = false
+    /*
+        // marking urgent
+        let oldDate = new Date(yyyy, mm - 1, dd);
+        oldDate.setDate(oldDate.getDate() - 3);
+        let vasuliTransactions = await TransactionModel.find({
+            date: {
+                $gte: oldDate,//3 days prior date
+                $lte: new Date(nextDate.yyyy, nextDate.mm, nextDate.dd)
+            },
+            item_name: "RETURN"
+        }, { partyId: 1, _id: 0 }).exec();
+        console.log("vas", vasuliTransactions)
+        // these are the parties whom vasuli is done in 3 prev days
+        // removing urgent sign from these parties
+        for (const vasuliTransaction of vasuliTransactions) {
+            let index = indexes[vasuliTransaction.partyId];
+            let ledgerItem = ledgers[index];
+            if (ledgerItem === undefined) {
+            } else {
+                ledgerItem.urgent = false
+            }
         }
-    }
-*/
+    */
 
     res.send(Formatter.format(ledgers, 200));
 });

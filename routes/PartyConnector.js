@@ -157,4 +157,46 @@ router.post(`${edit_party}`, async (req, res) => {
         ).status(500);
     }
 });
+
+/** Get potential troubler list */
+const troubler_list = "troubler_list"
+router.get(`/${troubler_list}`, async (req, res) => {
+    let date = Date.now();
+    console.log(date);
+    let list = await PartyModel.aggregate([
+        {
+            $match: {
+                dayThreshold: { $exists: true },
+            }
+        },
+        {
+            $project: {
+                isThresholdCrossed: {
+                    $lte: [
+                        "$lastVasuli",
+                        { $subtract: [date, { $multiply: ["$dayThreshold", 86400000] }] }
+                    ]
+                },
+                current: 1,
+                lastVasuli: 1,
+                name: 1
+            }
+        },
+        {
+            $match: { isThresholdCrossed: true }
+        },
+        {
+            $project:{
+                lastVasuliDate: { $convert: { input: "$lastVasuli", to: "date" } },
+                current: 1,
+                name: 1
+            }
+        }
+    ]).exec();
+
+    // console.log(list)
+    res.send(list)
+
+})
+
 module.exports = router;
