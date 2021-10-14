@@ -11,6 +11,7 @@ let transactionRouter = require("./routes/TransactionConnector");
 let crateTransactionRouter = require("./routes/CrateTransactionConnector");
 let cratePartyRouter = require("./routes/CratePartyConnector");
 let constantRouter = require("./routes/ConstantConnector");
+let itemRouter = require("./routes/ItemConnector");
 
 app.use(bodyParser.json({ extended: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -47,6 +48,7 @@ app.use("/transaction", transactionRouter);
 app.use("/crate_transaction", crateTransactionRouter);
 app.use("/crate_party", cratePartyRouter);
 app.use("/constant", constantRouter);
+app.use("/item", itemRouter);
 app.get("/", async (req, res) => {
     console.log("hey found new request")
     res.send(Formatter.format("here is response for you", 200));
