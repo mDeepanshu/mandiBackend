@@ -6,20 +6,7 @@ const express = require("express");
 const router = express.Router();
 const Formatter = require("./Formatter");
 const PartyModel = require("../Models/PartySchema");
-// const mongoose = require("mongoose");
-/*
-mongoose
-    .connect(
-        process.env.DB_LINK,
-        {useNewUrlParser: true, useUnifiedTopology: true}
-    )
-    .then(() => {
-        console.log("Connected to database!");
-    })
-    .catch(() => {
-        console.log("Connection failed!");
-    });*/
-/** Constants */
+
 const VYAPARI_TYPE = 0;
 const SPL_VYAPARI_TYPE = 1;
 const KISAN_TYPE = 2;

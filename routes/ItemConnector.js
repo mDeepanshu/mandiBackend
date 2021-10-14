@@ -27,4 +27,17 @@ router.post(`/${add_new}`, async (req, res) => {
         res.send(Formatter.format(response, 200));
 })
 
+/** Autocomplete Item Name */
+const autocomplete_name = "autocomplete_name";
+router.get(`/${autocomplete_name}`, async (req, res) => {
+    const { keyword, limit } = req.query;
+    let regEx = new RegExp(keyword, "g");
+    const queryResult = await ItemModel.find(
+        { itemName: regEx},
+        { itemName: 1,_id:0 }
+    )
+        .limit(parseInt(limit))
+        .exec();
+    res.send(Formatter.format(queryResult, 200));
+});
 module.exports = router;
