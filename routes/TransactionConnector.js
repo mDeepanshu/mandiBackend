@@ -7,6 +7,7 @@ const Formatter = require('./Formatter')
 const TransactionModel = require('../Models/TransactionSchema');
 const PartyModel = require('../Models/PartySchema');
 const smsClient = require('fast-two-sms')
+const http = require('http');
 
 function LedgerItem(name, id) {
     this.id = id;
@@ -130,7 +131,7 @@ router.post(`/${add_vasuli}`, async (req, res) => {
     }
     let party = await PartyModel.findOne(
         { _id: partyId },
-        { current: 1, phone: 1, _id: 0 }
+        { current: 1, phone: 1, name: 1, _id: 0 }
     ).exec()
     let current = party.current;
     if (current == null) {
@@ -149,11 +150,28 @@ router.post(`/${add_vasuli}`, async (req, res) => {
         a.amount = 0 - amount;
         a.current = current - amount;
         a.save();
-        const smsStatus = "opted to not send sms"
+        var smsStatus = "opted to not send sms"
         if (sendSms == "true") {
-            smsStatus = await send_sms(party.phone, date, amount, party.name);
+            let message = `Greetings ${party.name}, your payment of ${amount} on ${date} was successful`
+
+            console.log("calling send_sms");
+            let smsPromise = send_sms(party.phone, message);
+            try {
+                var error = null;
+                let smsPromiseResponse = await smsPromise.catch((err) => { console.error(err); error = err; });
+                if (error == null) {
+                    smsStatus = smsPromiseResponse.message;
+                }else{
+                    smsStatus = error.message;
+                }
+                console.log(smsStatus);
+            } catch (e) {
+                console.error(e);
+                smsStatus = e.message();
+            }
+            console.log("ss", smsStatus);
         }
-        res.send(Formatter.format(`Added Successfully\n ${smsStatus}`, 200));
+        res.send(Formatter.format(`Added Successfully\n smsStatus - ${smsStatus}`, 200));
     } catch (e) {
         res.send(
             Formatter.format(`error encountered ${e.message}`, 500)
@@ -232,18 +250,58 @@ router.get(`/${ledger}`, async (req, res) => {
     res.send(Formatter.format(ledgers, 200));
 });
 
-async function send_sms(phone, date, amount, name) {
-    // console.log("hhhhhhh")
-    message = `Greetings ${name}, your payment of ${amount} on ${date} was successful`
-    let options = {
-        authorization: process.env.SMS_API_KEY,
-        message: message +
-            "\nWe can send messages from server side, it cost i guess 0.40 rs/msg\n" +
-            "we can also buy sender id it will cost 150 rs for 6 months",
-        numbers: [phone]
+function send_sms(phone, message) {
+    // hit api on messaging server with message and phone
+    console.log("g");
+    try {
+        const messageServerUrl = process.env.MessageServerUrl;
+        if (!messageServerUrl) {
+            console.log("no messageServerUrl found")
+            // return "no messageServerUrl found";
+        }
+        let body = { message: message };
+        const data = JSON.stringify(body);
+        const options = {
+            hostname: messageServerUrl,
+            port: 3001,
+            path: `/message/newMessage?phone=${phone}`,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': data.length
+            },
+        };
+
+        console.log("options", options);
+
+        return new Promise((resolve, reject) => {
+            const req = http.request(options, (res) => {
+                res.setEncoding('utf8');
+                let responseBody = '';
+
+                res.on('data', (chunk) => {
+                    responseBody += chunk;
+                });
+
+                res.on('end', () => {
+                    resolve(JSON.parse(responseBody));
+                });
+            });
+
+            req.on('error', (err) => {
+                reject(err);
+            });
+
+            req.write(data)
+            req.end();
+        });
+    } catch (e) {
+        console.log("e", e.message);
     }
-    const response = await smsClient.sendMessage(options)
-    return response;
+    // response = await doRequest(options, data).catch((err) => { console.error(err); err = err.message; });
+    // console.log("response", response);
+    // if (!response) return error;
+    // return response;
 }
 
 module.exports = router;
