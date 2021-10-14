@@ -13,14 +13,27 @@ class Formatter {
                     title: "Successful",
                     message: body
                 }
+            case 500:
+                return {
+                    statusCode: 500,
+                    title: "Internal Server Error",
+                    message: body
+                }
+            default:
+                return {
+                    status: statusCode,
+                    title: `status - ${statusCode}`,
+                    message: body
+                }
+
         }
     }
 
     static nextDate(yyyy, mm, dd) {
         console.log(yyyy)
-        if(yyyy==null)return "year is wrong"
-        if(mm==null)return "month is wrong"
-        if(dd==null)return "date is wrong"
+        if (yyyy == null) return "year is wrong"
+        if (mm == null) return "month is wrong"
+        if (dd == null) return "date is wrong"
         if (yyyy < 2000 || 4000 < yyyy) return "year is wrong";
         if (mm < 1 || 12 < mm) return "month is wrong";
         let days;
