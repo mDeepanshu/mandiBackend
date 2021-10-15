@@ -152,24 +152,8 @@ router.post(`/${add_vasuli}`, async (req, res) => {
         a.save();
         var smsStatus = "opted to not send sms"
         if (sendSms == "true") {
-            let message = `Greetings ${party.name}, your payment of ${amount} on ${date} was successful`
-
-            console.log("calling send_sms");
-            let smsPromise = send_sms(party.phone, message);
-            try {
-                var error = null;
-                let smsPromiseResponse = await smsPromise.catch((err) => { console.error(err); error = err; });
-                if (error == null) {
-                    smsStatus = smsPromiseResponse.message;
-                }else{
-                    smsStatus = error.message;
-                }
-                console.log(smsStatus);
-            } catch (e) {
-                console.error(e);
-                smsStatus = e.message();
-            }
-            console.log("ss", smsStatus);
+            let message = `Greetings ${party.name}, your payment of ${amount} on ${date} was successful`;
+            smsStatus = await send_sms(party.phone, message);
         }
         res.send(Formatter.format(`Added Successfully\n smsStatus - ${smsStatus}`, 200));
     } catch (e) {
@@ -178,6 +162,62 @@ router.post(`/${add_vasuli}`, async (req, res) => {
         ).status(500);
     }
 });
+
+/** Edit Vasuli Transaction*/
+const edit_vasuli = "edit_vasuli";
+router.post(`/${edit_vasuli}`, async (req, res) => {
+    let { vasuliId, amount, sendSms } = req.query;
+    var error = null;
+    let originalVasuli = await TransactionModel
+        .findOne(
+            { _id: vasuliId },
+            { amount: 1, partyId: 1, date:1, _id: 0 })
+        .exec()
+        .catch((err) => {
+            error = err;
+            console.error(err);
+        });
+    if (error != null) {
+        return res.send(Formatter.format("cannot update " + err.message, 500)).status(500);
+    }
+    let difference = (0 - originalVasuli.amount) - amount;
+    let updatePartyResponse = await PartyModel.findOneAndUpdate(
+        { _id: originalVasuli.partyId },
+        {
+            $inc: { current: difference }
+        })
+        .catch((err) => {
+            console.error(err);
+            error = err;
+        });
+        console.log("up",updatePartyResponse);
+    if (error != null) {
+        return res.send(Formatter.format("cannot update " + err.message, 500)).status(500);
+    }
+    let phone = updatePartyResponse.phone;
+    let updateVasuliTransactionResponse =
+        await TransactionModel
+            .updateOne(
+                { _id: vasuliId },
+                {
+                    amount: 0 - amount, $inc: { current: difference }
+                })
+            .catch((err) => {
+                error = err;
+                console.error(err);
+            });
+    if (error != null) {
+        return res.send(Formatter.format("cannot update " + err.message, 500)).status(500);
+    }
+
+    var smsStatus = "opted to not send sms"
+    if (sendSms == "true") {
+        let message = `Previous ${originalVasuli.amount} vasuli amount is updated to ${amount}, vasuli date - ${originalVasuli.date} , update date - ${new Date()}`
+        smsStatus = await send_sms(phone, message);
+        console.log("smsStatus",smsStatus);
+    }
+    res.send(Formatter.format("Editted Successfully\n Sms Status - "+smsStatus,200));
+})
 
 /** Get ledger report */
 const ledger = "ledger";
@@ -250,7 +290,23 @@ router.get(`/${ledger}`, async (req, res) => {
     res.send(Formatter.format(ledgers, 200));
 });
 
-function send_sms(phone, message) {
+async function send_sms(phone, message) {
+    let smsPromise = createSmsPromise(phone, message);
+    try {
+        var error = null;
+        let smsPromiseResponse = await smsPromise.catch((err) => { console.error(err); error = err; });
+        if (error == null) {
+            return smsPromiseResponse.message;
+        } else {
+            return error.message;
+        }
+    } catch (e) {
+        console.error(e);
+        return e.message();
+    }
+}
+
+function createSmsPromise(phone, message) {
     // hit api on messaging server with message and phone
     console.log("g");
     try {
@@ -271,8 +327,6 @@ function send_sms(phone, message) {
                 'Content-Length': data.length
             },
         };
-
-        console.log("options", options);
 
         return new Promise((resolve, reject) => {
             const req = http.request(options, (res) => {
@@ -298,10 +352,6 @@ function send_sms(phone, message) {
     } catch (e) {
         console.log("e", e.message);
     }
-    // response = await doRequest(options, data).catch((err) => { console.error(err); err = err.message; });
-    // console.log("response", response);
-    // if (!response) return error;
-    // return response;
 }
 
 module.exports = router;
