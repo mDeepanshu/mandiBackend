@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Formatter = require('./Formatter');
-const ItemMdel = require('../Models/ItemSchema');
 const ItemModel = require('../Models/ItemSchema');
-
+const TransactionModel = require('../Models/TransactionSchema');
 
 /** Add new item */
 const add_new = "add_new";
@@ -33,11 +32,52 @@ router.get(`/${autocomplete_name}`, async (req, res) => {
     const { keyword, limit } = req.query;
     let regEx = new RegExp(keyword, "g");
     const queryResult = await ItemModel.find(
-        { itemName: regEx},
-        { itemName: 1,_id:0 }
+        { itemName: regEx },
+        { itemName: 1, _id: 0 }
     )
         .limit(parseInt(limit))
         .exec();
     res.send(Formatter.format(queryResult, 200));
 });
+
+/** All sell of Item on day */
+const sell_of_item_today = "sell_of_item_today";
+router.get(`/${sell_of_item_today}`, async (req, res) => {
+    const { item_name } = req.query;
+    console.log(item_name, "item");
+    let startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+    let endDate = new Date();
+    console.log(startDate, endDate);
+    let transactionsList = await TransactionModel
+        .aggregate([{
+            $match: {
+                item_name: item_name,
+                date: { $lte: endDate, $gte: startDate }
+            }
+        },
+        {
+            $lookup:
+            {
+                from: "parties",
+                localField: "partyId",
+                foreignField: "_id",
+                as: "party"
+            }
+        },
+        {$unwind: '$party'},
+        {
+            $project: {
+                party_name: "$party.name",
+                amount: 1
+
+            }
+        }
+        ])
+        .exec();
+    console.log(transactionsList);
+    res.send(transactionsList);
+
+})
+
 module.exports = router;
