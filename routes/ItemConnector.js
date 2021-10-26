@@ -49,12 +49,15 @@ router.get(`/${sell_of_item_today}`, async (req, res) => {
     startDate.setHours(0, 0, 0, 0);
     let endDate = new Date();
     console.log(startDate, endDate);
+    var match = {
+        date: { $lte: endDate, $gte: startDate }
+    };
+    if (item_name != 'undefined' && item_name != "") {
+        match['item_name'] = item_name;
+    }
     let transactionsList = await TransactionModel
         .aggregate([{
-            $match: {
-                item_name: item_name,
-                date: { $lte: endDate, $gte: startDate }
-            }
+            $match: match
         },
         {
             $lookup:
@@ -65,12 +68,12 @@ router.get(`/${sell_of_item_today}`, async (req, res) => {
                 as: "party"
             }
         },
-        {$unwind: '$party'},
+        { $unwind: '$party' },
         {
             $project: {
                 party_name: "$party.name",
-                amount: 1
-
+                amount: 1,
+                item_name:1
             }
         }
         ])
