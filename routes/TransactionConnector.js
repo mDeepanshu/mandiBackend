@@ -171,7 +171,7 @@ router.post(`/${edit_vasuli}`, async (req, res) => {
     let originalVasuli = await TransactionModel
         .findOne(
             { _id: vasuliId },
-            { amount: 1, partyId: 1, date:1, _id: 0 })
+            { amount: 1, partyId: 1, date: 1, _id: 0 })
         .exec()
         .catch((err) => {
             error = err;
@@ -190,7 +190,7 @@ router.post(`/${edit_vasuli}`, async (req, res) => {
             console.error(err);
             error = err;
         });
-        console.log("up",updatePartyResponse);
+    console.log("up", updatePartyResponse);
     if (error != null) {
         return res.send(Formatter.format("cannot update " + err.message, 500)).status(500);
     }
@@ -214,9 +214,9 @@ router.post(`/${edit_vasuli}`, async (req, res) => {
     if (sendSms == "true") {
         let message = `Previous ${originalVasuli.amount} vasuli amount is updated to ${amount}, vasuli date - ${originalVasuli.date} , update date - ${new Date()}`
         smsStatus = await send_sms(phone, message);
-        console.log("smsStatus",smsStatus);
+        console.log("smsStatus", smsStatus);
     }
-    res.send(Formatter.format("Editted Successfully\n Sms Status - "+smsStatus,200));
+    res.send(Formatter.format("Editted Successfully\n Sms Status - " + smsStatus, 200));
 })
 
 /** Get ledger report */
@@ -289,6 +289,43 @@ router.get(`/${ledger}`, async (req, res) => {
 
     res.send(Formatter.format(ledgers, 200));
 });
+
+/** Generate Cashbook */
+const cashbook = "cashbook";
+router.get(`/${cashbook}`, async (req, res) => {
+    let startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+    let endDate = new Date();
+    console.log(startDate, endDate);
+    var match = {
+        item_name:"RETURN",
+        date: { $lte: endDate, $gte: startDate }
+    };
+    let transactionsList = await TransactionModel
+        .aggregate([{
+            $match: match
+        },
+        {
+            $lookup:
+            {
+                from: "parties",
+                localField: "partyId",
+                foreignField: "_id",
+                as: "party"
+            }
+        },
+        { $unwind: '$party' },
+        {
+            $project: {
+                party_name: "$party.name",
+                amount: 1,
+            }
+        }
+        ])
+        .exec();
+    console.log(transactionsList);
+    res.send(transactionsList);
+})
 
 async function send_sms(phone, message) {
     let smsPromise = createSmsPromise(phone, message);
