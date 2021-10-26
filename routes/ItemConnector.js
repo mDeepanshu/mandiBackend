@@ -10,6 +10,11 @@ router.post(`/${add_new}`, async (req, res) => {
     let itemName = req.body.itemName;
     if (typeof itemName != "string") {
         res.send(Formatter.format("itemName in body should be a string", 400)).status(400);
+        return;
+    }
+    if(itemName=="RETURN"){
+        res.send(Formatter.format("itemName cannot be 'RETURN'", 400)).status(400);
+        return;
     }
     let item = new ItemModel();
     item.itemName = itemName;
